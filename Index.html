@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hyper AI Chat – Powered by Groq LLaMA-3.1 8B for fast, clean, and animated conversation experience.">
+  <meta name="keywords" content="AI chat, LLaMA 3.1, Groq, chatbot, assistant, Hyper AI">
+  <meta name="author" content="YourName">
+  <title>Hyper AI Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #121212, #1e1e1e);
+      color: white;
+      padding: 10px;
+    }
+
+    #chat-box {
+      max-width: 800px;
+      margin: 0 auto;
+      padding-bottom: 80px; /* space for input */
+    }
+
+    .message {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      animation: fadeInUp 0.4s ease-in-out;
+    }
+
+    .user {
+      background-color: #2e2e2e;
+      text-align: right;
+    }
+
+    .ai {
+      background-color: #1a1a1a;
+      text-align: left;
+      white-space: pre-line;
+    }
+
+    #input-container {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      outline: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 25px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Smooth spacing between headings and points */
+    .ai h1, .ai h2, .ai h3 {
+      margin: 16px 0 10px;
+    }
+
+    .ai p {
+      margin: 10px 0;
+    }
+
+    .ai ul {
+      margin: 10px 0 10px 20px;
+    }
+
+    .ai li {
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chat-box">
+    <div class="message ai">
+      <h1>Welcome to Hyper AI Chat</h1>
+      <p>Ask me anything. I'm here to help!</p>
+    </div>
+  </div>
+
+  <div id="input-container">
+    <input type="text" id="user-input" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+
+    async function sendMessage() {
+      const inputField = document.getElementById("user-input");
+      const userInput = inputField.value.trim();
+      if (!userInput) return;
+
+      displayMessage("user", userInput);
+      inputField.value = "";
+
+      const aiResponse = await fetchGroqResponse(userInput);
+      displayMessage("ai", cleanResponse(aiResponse));
+    }
+
+    function displayMessage(sender, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `message ${sender}`;
+      msgDiv.innerHTML = formatMessage(text);
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function formatMessage(text) {
+      // Basic markdown-like formatting
+      return text
+        .replace(/(?:^|\n)\s*([•\-])\s+/g, "<li>$&</li>")
+        .replace(/(#+)\s?(.*)/g, (_, hashes, title) => `<h${hashes.length}>${title}</h${hashes.length}>`)
+        .replace(/\n{2,}/g, "</p><p>")
+        .replace(/\n/g, "<br>");
+    }
+
+    function cleanResponse(text) {
+      // Remove stray "*"
+      return text.replace(/\*+/g, "");
+    }
+
+    async function fetchGroqResponse(userMessage) {
+      const API_KEY = "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";
+      const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "user", content: userMessage }
+          ],
+          temperature: 0.7
+        }),
+      });
+
+      const data = await response.json();
+      return data?.choices?.[0]?.message?.content || "Sorry, something went wrong.";
+    }
+  </script>
+
+</body>
+</html>
